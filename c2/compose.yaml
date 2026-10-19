@@ -1,0 +1,12 @@
+services:
+  connector-state:
+    image: eclipse-mosquitto:2
+    command: mosquitto -c /mosquitto-no-auth.conf
+    ports:
+      - "1883:1883"
+
+  clock:
+    build: ./c2/components/clock
+
+  board:
+    build: ./c2/components/board
