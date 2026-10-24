@@ -5,6 +5,22 @@ services:
     ports:
       - "1883:1883"
 
+  # listen to all mosquitto brokers 
+  # see the logs from docker host machine with:  docker compose -f compose.yaml logs -f subscribe_all 
+  subscribe_all:
+    image: eclipse-mosquitto:2
+    command:
+      - /bin/sh
+      - -c
+      - |
+        mosquitto_sub -h connector-state -p 1883 -t '#' -v &
+        # mosquitto_sub -h connector-other -p 1883 -t '#' -v &
+        wait -n
+    depends_on:
+      - connector-state
+      # - connector-other 
+    restart: on-failure
+
   clock:
     build: ./c2/components/clock
 

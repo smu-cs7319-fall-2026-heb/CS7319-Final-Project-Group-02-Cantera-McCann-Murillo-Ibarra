@@ -10,7 +10,6 @@ services:
         target: /workspaces/c2
 
   clock:
-    command: sleep infinity
     volumes:
       - type: bind
         # source is relative to the folder of the compose file listed first in

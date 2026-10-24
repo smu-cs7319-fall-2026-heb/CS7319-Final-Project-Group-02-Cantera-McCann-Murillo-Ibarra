@@ -1,15 +1,15 @@
-import random
+import os
 
-from event_client import EventClient
+from component import Component
 
 
-def main() -> None:
-    event_client = EventClient("connector-state", 1883)
-    move_from = (random.randint(0, 6), random.randint(0, 7))
-    move_to = (random.randint(0, 6), random.randint(0, 7))
-    event_client.publish(
-        "piece_moved", f"piece moved from {move_from} to {move_to}"
-    )
+def main():
+    host = os.getenv("MQTT_HOST", "connector-state")
+    port = int(os.getenv("MQTT_PORT", "1883"))
+
+    component = Component(host, port)
+
+    component.run()
 
 
 if __name__ == "__main__":

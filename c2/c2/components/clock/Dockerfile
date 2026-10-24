@@ -11,5 +11,11 @@ RUN curl -fsSL -o /tmp/boost.tar.gz \
     https://archives.boost.io/release/1.88.0/source/boost_1_88_0.tar.gz \
     && tar xzf /tmp/boost.tar.gz -C /opt boost_1_88_0/boost
 
-CMD ["sleep", "infinity"]
+WORKDIR /app
+
+COPY . . 
+
+RUN cmake -S /app -B /tmp/build && cmake --build /tmp/build -j "$(nproc)"
+
+CMD ["/tmp/build/clock"]
 

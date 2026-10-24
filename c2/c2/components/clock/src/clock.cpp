@@ -4,6 +4,8 @@
 
 #include <boost/system/error_code.hpp>
 
+const std::string PREFIX = "c2/connector-state/clock";
+
 Clock::Clock(const ClockConfig& config)
     :
     _config(config),
@@ -32,5 +34,5 @@ void Clock::schedule_next_tick() {
 
 void Clock::notify_next_tick() {
     ++_tick;
-    _bottom_domain.publish("next_tick", std::to_string(_tick));
+    _bottom_domain.publish(PREFIX + "/next_tick", std::to_string(_tick));
 }

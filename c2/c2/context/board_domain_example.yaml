@@ -1,0 +1,13 @@
+# Example declaration for Board; each component defines requests and notifications. 
+top_domain: 
+  requests: [] 
+  notifications: [] 
+bottom_domain:
+  requests:
+    - get_state
+    - actions
+    - result
+  notifications:
+    - state
+    - available_actions
+    - state_changed

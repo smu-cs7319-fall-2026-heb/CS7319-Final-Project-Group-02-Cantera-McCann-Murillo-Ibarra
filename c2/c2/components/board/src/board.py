@@ -9,11 +9,13 @@ EMPTY = 0
 
 CAN_DROP_DISK = 1  
 CAN_NOT_DROP_DISK = 0  
+DEFAULT_BOARD_SHAPE = (6,7) 
 #NEXT_MOVE = "N"
 #DRAW = 0 
 
 
-def INITIAL_STATE(size: tuple = (6,7)) -> np.ndarray:    
+
+def INITIAL_STATE(size: tuple = DEFAULT_BOARD_SHAPE) -> np.ndarray:    
     return np.full(shape=size, fill_value=0, dtype=np.int8)    
 
 # legal moves in state s.   
@@ -78,3 +80,27 @@ def RESULT(s, p, a, verbose=False):
 
     board[row_index][a] = p   
     return board 
+
+
+# Mostly just meant to hold a reference to the board 
+class Board: 
+    _board_shape = None 
+    _state: np.ndarray = None 
+
+    def __init__(self, state: np.ndarray = None, board_shape = DEFAULT_BOARD_SHAPE): 
+        if state is None: 
+            self._state = INITIAL_STATE(board_shape) 
+        else: 
+            self._state = state.copy() 
+        self._board_shape = self._state.shape 
+
+    def get_state(self,): 
+        return self._state.copy() 
+
+    def actions(self):
+        return ACTIONS(self._state)
+
+    def result(self, p, a, verbose=False):
+        self._state = RESULT(self._state, p, a, verbose=verbose)
+        return self.get_state()
+
