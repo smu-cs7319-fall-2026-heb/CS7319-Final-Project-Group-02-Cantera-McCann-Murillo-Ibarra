@@ -1,4 +1,5 @@
 import numpy as np    
+import copy 
 
 #
 # Attempt at reducing magic numbers  
@@ -55,7 +56,8 @@ def RESULT(s, p, a, verbose=False):
         board (np.ndarray)  : deep copy of state as new state after taking action a  
     """ 
 
-    board = s.copy()  
+    #board = s.copy()  
+    board = copy.deepcopy(s)  
     #make sure there is at least one spot left in column to drop a disk, 
     # by looking at the "top" row for an empty spot in that column  
     if board[0][a] != EMPTY: 
@@ -91,11 +93,11 @@ class Board:
         if state is None: 
             self._state = INITIAL_STATE(board_shape) 
         else: 
-            self._state = state.copy() 
+            self._state = copy.deepcopy(state) 
         self._board_shape = self._state.shape 
 
     def get_state(self,): 
-        return self._state.copy() 
+        return copy.deepcopy(self._state) 
 
     def actions(self):
         return ACTIONS(self._state)

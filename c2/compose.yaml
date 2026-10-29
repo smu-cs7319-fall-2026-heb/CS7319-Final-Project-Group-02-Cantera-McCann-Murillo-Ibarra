@@ -26,3 +26,6 @@ services:
 
   board:
     build: ./c2/components/board
+
+  status:
+    build: ./c2/components/status

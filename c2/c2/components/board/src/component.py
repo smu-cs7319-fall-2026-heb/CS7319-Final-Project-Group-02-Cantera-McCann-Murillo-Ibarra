@@ -63,6 +63,7 @@ class Component:
 
         self._notify_state_change(state)
 
+    # just shows current state 
     def _notify_state(self):
         state = self._board.get_state()
         return self._publish_notification(NOTIFY_STATE, state)
@@ -71,10 +72,15 @@ class Component:
         actions = self._board.actions()
         return self._publish_notification(NOTIFY_AVAILABLE_ACTIONS, actions)
 
+    # only used to respond to _on_request_results after player p takes action a 
     def _notify_state_change(self, state):
         return self._publish_notification(NOTIFY_STATE_CHANGE, state)
 
     def _publish_notification(self, notification, value):
         topic_name = self._notifications[notification]
-        payload = json.dumps(value.tolist())
+        if notification == NOTIFY_STATE:
+            rows = [json.dumps(row) for row in value.tolist()]
+            payload = "[\n" + ",\n".join(rows) + "\n]"
+        else:
+            payload = json.dumps(value.tolist())
         return self._event_client.publish(topic_name, payload)
