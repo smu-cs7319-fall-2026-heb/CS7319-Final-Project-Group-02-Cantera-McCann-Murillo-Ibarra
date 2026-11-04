@@ -7,6 +7,7 @@ from domain import (
     REQUEST_STATE,
     REQUEST_ACTIONS,
     REQUEST_RESULTS,
+    REQUEST_RESET_STATE,
     NOTIFY_STATE,
     NOTIFY_AVAILABLE_ACTIONS,
     NOTIFY_STATE_CHANGE,
@@ -20,7 +21,10 @@ class Component:
         self._board = Board()
         self._domain = Domain()
         self._event_client = EventClient(
-            host, port, on_connect=self.publish_dummy_data
+            host,
+            port,
+            on_connected=self.publish_dummy_data,
+            on_message=self._on_message,
         )
 
         bottom_domain = self._domain.get_bottom_domain()
@@ -28,14 +32,15 @@ class Component:
         self._notifications = bottom_domain["notifications"]
 
         # bottom domain request handlers 
-        handlers = {
-            REQUEST_STATE: self._on_request_state,
-            REQUEST_ACTIONS: self._on_request_actions,
-            REQUEST_RESULTS: self._on_request_results,
+        self._handlers = {
+            self._requests[REQUEST_STATE]: self._on_request_state,
+            self._requests[REQUEST_ACTIONS]: self._on_request_actions,
+            self._requests[REQUEST_RESULTS]: self._on_request_results,
+            self._requests[REQUEST_RESET_STATE]: self._on_request_reset_state,
         }
 
-        for request, topic_name in self._requests.items():
-            self._event_client.subscribe(topic_name, handlers[request])
+        for topic in self._handlers:
+            self._event_client.subscribe(topic)
 
     def run(self):
         self._event_client.run()
@@ -46,6 +51,11 @@ class Component:
     def publish_dummy_data(self):
         self._notify_state()
         self._notify_available_actions()
+
+    def _on_message(self, client, userdata, msg):
+        callback = self._handlers.get(msg.topic)
+        if callback is not None:
+            callback(client, userdata, msg)
 
     def _on_request_state(self, client, userdata, message):
         self._notify_state()
@@ -63,6 +73,10 @@ class Component:
 
         self._notify_state_change(state)
 
+    def _on_request_reset_state(self, client, userdata, message):
+        state = self._board.reset_state()
+        self._notify_state_change(state)
+
     # just shows current state 
     def _notify_state(self):
         state = self._board.get_state()
@@ -72,7 +86,7 @@ class Component:
         actions = self._board.actions()
         return self._publish_notification(NOTIFY_AVAILABLE_ACTIONS, actions)
 
-    # only used to respond to _on_request_results after player p takes action a 
+    # used to respond to player p taking action a and state reset request 
     def _notify_state_change(self, state):
         return self._publish_notification(NOTIFY_STATE_CHANGE, state)
 

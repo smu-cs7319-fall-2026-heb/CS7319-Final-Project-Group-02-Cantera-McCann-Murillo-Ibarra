@@ -6,11 +6,17 @@
 
 ## how to run 
 1. Install Docker (choose wsl when asked) 
-2. Run `docker compose up --build` From `final_project/c2` (the directory containing `compose.yaml`)  
+2. build and start containers. from the project root run:   
+```sh
+    docker compose -f c2/compose.yaml up --build
+```
 
 Note: no GUI available yet  
 
- 
+## how to stop containers   
+```sh
+docker compose -f c2/compose.yaml down  
+```
 
 ## Development
 
@@ -23,12 +29,11 @@ Note: no GUI available yet
 6. wait for vs code to build and open the devcontainer 
 
 ### listen to all messages on the connector-state connector (mqtt broker)  
-
 ```sh
 mosquitto_sub --host connector-state --topic '#' --verbose
 ```
-### Compile clock component
 
+### Compile clock component
 ```sh
 mkdir -p /tmp/build
 cmake -S /workspaces/c2/c2/components/clock/ -B /tmp/build/
@@ -37,8 +42,26 @@ cmake --build /tmp/build/
 mkdir -p /tmp/build && cmake -S /workspaces/c2/c2/components/clock/ -B /tmp/build/ && cmake --build /tmp/build/
 ```
 
+### test  
+1. install the python requirements on host machine  
+```sh
+python -m pip install -r c2/requirements.txt  
+```
+2. start containers  
+```sh
+docker compose -f c2/compose.yaml up      
+```
+3. run pytest against them 
+```sh
+python -m pytest c2/test -v   
+```
 
 
 ## TODO
+- [ ] Add integration testing.  
+- [ ] Add unit testing.  
+- [ ] Add component/connector (broker) configuration. 
+      (not all brokers will use the default port number for example) 
+- [ ] Figure out how to collect empirical data... 
 - [ ] Set up each broker in Docker Compose using the config files in `c2/connectors/`.
 - [ ] Use a shared domain file for components. See [board_domain_example.yaml] in `c2/context/`.

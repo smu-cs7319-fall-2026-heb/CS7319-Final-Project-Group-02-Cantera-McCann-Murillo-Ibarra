@@ -19,7 +19,10 @@ class Component:
         self._status = Status()
         self._domain = Domain()
         self._event_client = EventClient(
-            host, port, on_connect=self._notify_status
+            host,
+            port,
+            on_connected=self._notify_status,
+            on_message=self._on_message,
         )
 
         bottom_domain = self._domain.get_bottom_domain()
@@ -27,19 +30,24 @@ class Component:
         self._notifications = bottom_domain["notifications"]
 
         # bottom domain request handler 
-        handlers = {
-            REQUEST_STATUS: self._on_request_status,
-            REQUEST_UPDATE_STATUS: self._on_request_update_status,
+        self._handlers = {
+            self._requests[REQUEST_STATUS]: self._on_request_status,
+            self._requests[REQUEST_UPDATE_STATUS]: self._on_request_update_status,
         }
 
-        for request, topic_name in self._requests.items():
-            self._event_client.subscribe(topic_name, handlers[request])
+        for topic in self._handlers:
+            self._event_client.subscribe(topic)
 
     def run(self):
         self._event_client.run()
 
     def disconnect(self):
         self._event_client.disconnect()
+
+    def _on_message(self, client, userdata, msg):
+        callback = self._handlers.get(msg.topic)
+        if callback is not None:
+            callback(client, userdata, msg)
 
     def _on_request_status(self, client, userdata, message):
         self._notify_status()

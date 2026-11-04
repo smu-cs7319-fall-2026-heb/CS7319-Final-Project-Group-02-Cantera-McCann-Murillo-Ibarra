@@ -99,6 +99,10 @@ class Board:
     def get_state(self,): 
         return copy.deepcopy(self._state) 
 
+    def reset_state(self):
+        self._state = INITIAL_STATE(self._board_shape)
+        return self.get_state()
+
     def actions(self):
         return ACTIONS(self._state)
 

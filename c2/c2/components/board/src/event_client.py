@@ -1,17 +1,17 @@
 import paho.mqtt.client as mqtt
 
 class EventClient:
-    def __init__(self, host, port, on_connect=None):
+    def __init__(self, host, port, on_connected=None, on_message=None):
         self._host = host
         self._port = port
-        self._on_connected = on_connect
+        self._on_connected = on_connected
         self._subscriptions = set()
 
         self._client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         self._client.on_connect = self._on_connect
+        self._client.on_message = on_message
 
-    def subscribe(self, topic, handler):
-        self._client.message_callback_add(topic, handler)
+    def subscribe(self, topic):
         self._subscriptions.add(topic)
 
         if self._client.is_connected():
