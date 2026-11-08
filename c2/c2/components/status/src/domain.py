@@ -2,6 +2,7 @@ PREFIX = "c2/connector-state/status"
 
 REQUEST_STATUS = "request_status"
 REQUEST_UPDATE_STATUS = "request_update_status"
+REQUEST_RESET_STATUS = "request_reset_status"
 
 NOTIFY_STATUS = "notify_status"
 NOTIFY_STATUS_CHANGE = "notify_status_change"
@@ -16,6 +17,7 @@ DOMAIN = {
         "requests": [
             REQUEST_STATUS,
             REQUEST_UPDATE_STATUS,
+            REQUEST_RESET_STATUS,
         ],
         "notifications": [
             NOTIFY_STATUS,

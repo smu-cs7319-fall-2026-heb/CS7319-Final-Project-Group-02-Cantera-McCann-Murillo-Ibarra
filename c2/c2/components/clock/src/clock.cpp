@@ -1,15 +1,19 @@
 #include "clock.hpp"
 
 #include <string>
+#include <utility>
 
 #include <boost/system/error_code.hpp>
 
 const std::string PREFIX = "c2/connector-state/clock";
 
-Clock::Clock(const ClockConfig& config)
+Clock::Clock(const ClockConfig& config,
+             boost::asio::io_context& ioc,
+             Publish publish)
     :
     _config(config),
-    _bottom_domain(_ioc, _config.host, _config.port),
+    _ioc(ioc),
+    _publish(std::move(publish)),
     _steady_timer(_ioc),
     _tick(0)
 {
@@ -34,5 +38,5 @@ void Clock::schedule_next_tick() {
 
 void Clock::notify_next_tick() {
     ++_tick;
-    _bottom_domain.publish(PREFIX + "/next_tick", std::to_string(_tick));
+    _publish(PREFIX + "/next_tick", std::to_string(_tick));
 }

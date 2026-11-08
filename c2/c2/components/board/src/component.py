@@ -17,7 +17,7 @@ from event_client import EventClient
 # just defines the handler functions requests/notifications in/out 
 # of this component 
 class Component:
-    def __init__(self, host, port):
+    def __init__(self, host, port, publish=None):
         self._board = Board()
         self._domain = Domain()
         self._event_client = EventClient(
@@ -25,6 +25,9 @@ class Component:
             port,
             on_connected=self.publish_dummy_data,
             on_message=self._on_message,
+        )
+        self._publish = (
+            self._event_client.publish if publish is None else publish
         )
 
         bottom_domain = self._domain.get_bottom_domain()
@@ -97,4 +100,4 @@ class Component:
             payload = "[\n" + ",\n".join(rows) + "\n]"
         else:
             payload = json.dumps(value.tolist())
-        return self._event_client.publish(topic_name, payload)
+        return self._publish(topic_name, payload)

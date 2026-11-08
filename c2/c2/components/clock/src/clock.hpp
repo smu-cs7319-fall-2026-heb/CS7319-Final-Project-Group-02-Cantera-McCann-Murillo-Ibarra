@@ -3,12 +3,15 @@
 
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <string>
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/steady_timer.hpp>
 
-#include "event_client.hpp"
+// a function wrapper to allow injecting the publisher to make mock testing easier 
+using Publish = std::function<void(
+    const std::string&, const std::string&)>;
 
 struct ClockConfig {
     std::string host = "connector-state";
@@ -19,8 +22,9 @@ struct ClockConfig {
 class Clock {
 private:
     ClockConfig _config;
-    boost::asio::io_context _ioc;
-    EventClient _bottom_domain;
+    boost::asio::io_context& _ioc;
+    // accept a publish function 
+    Publish _publish;
     boost::asio::steady_timer _steady_timer;
     std::uint64_t _tick;
 
@@ -28,7 +32,9 @@ private:
     void notify_next_tick();
 
 public:
-    explicit Clock(const ClockConfig& config);
+    Clock(const ClockConfig& config,
+          boost::asio::io_context& ioc,
+          Publish publish);
     void run();
 };
 

@@ -34,6 +34,10 @@ class Status:
     def get_status(self):
         return deepcopy(self._status)
 
+    def reset_status(self):
+        self._status = INITIAL_STATUS()
+        return self.get_status()
+
     def update_status(self, changes):
         if not isinstance(changes, dict):
             raise ValueError("Status updates must be dictionaries")

@@ -6,6 +6,7 @@ from domain import (
     Domain,
     REQUEST_STATUS,
     REQUEST_UPDATE_STATUS,
+    REQUEST_RESET_STATUS,
     NOTIFY_STATUS,
     NOTIFY_STATUS_CHANGE,
 )
@@ -15,7 +16,7 @@ from event_client import EventClient
 # just defines the handler functions requests/notifications in/out 
 # of this component 
 class Component:
-    def __init__(self, host, port):
+    def __init__(self, host, port, publish=None):
         self._status = Status()
         self._domain = Domain()
         self._event_client = EventClient(
@@ -23,6 +24,9 @@ class Component:
             port,
             on_connected=self._notify_status,
             on_message=self._on_message,
+        )
+        self._publish = (
+            self._event_client.publish if publish is None else publish
         )
 
         bottom_domain = self._domain.get_bottom_domain()
@@ -33,6 +37,7 @@ class Component:
         self._handlers = {
             self._requests[REQUEST_STATUS]: self._on_request_status,
             self._requests[REQUEST_UPDATE_STATUS]: self._on_request_update_status,
+            self._requests[REQUEST_RESET_STATUS]: self._on_request_reset_status,
         }
 
         for topic in self._handlers:
@@ -62,16 +67,20 @@ class Component:
 
         self._notify_status_change(status)
 
+    def _on_request_reset_status(self, client, userdata, message):
+        status = self._status.reset_status()
+        self._notify_status_change(status)
+
     # just shows current status 
     def _notify_status(self):
         status = self._status.get_status()
         return self._publish_notification(NOTIFY_STATUS, status)
 
-    # only used to responed to _on_request_update_status bc something changed   
+    # used after status update and reset requests
     def _notify_status_change(self, status):
         return self._publish_notification(NOTIFY_STATUS_CHANGE, status)
 
     def _publish_notification(self, notification, value):
         topic_name = self._notifications[notification]
         payload = json.dumps(value)
-        return self._event_client.publish(topic_name, payload)
+        return self._publish(topic_name, payload)
