@@ -14,7 +14,7 @@ using Publish = std::function<void(
     const std::string&, const std::string&)>;
 
 struct ClockConfig {
-    std::string host = "connector-state";
+    std::string host = "connector-model";
     std::uint16_t port = 1883;
     std::chrono::milliseconds period = std::chrono::seconds(1);
 };

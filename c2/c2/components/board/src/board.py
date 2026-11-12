@@ -11,7 +11,7 @@ EMPTY = 0
 CAN_DROP_DISK = 1  
 CAN_NOT_DROP_DISK = 0  
 DEFAULT_BOARD_SHAPE = (6,7) 
-#NEXT_MOVE = "N"
+#NEXT_ACTION = "N"
 #DRAW = 0 
 
 
@@ -19,7 +19,7 @@ DEFAULT_BOARD_SHAPE = (6,7)
 def INITIAL_STATE(size: tuple = DEFAULT_BOARD_SHAPE) -> np.ndarray:    
     return np.full(shape=size, fill_value=0, dtype=np.int8)    
 
-# legal moves in state s.   
+# legal actions in state s.
 def ACTIONS(s):      
     """ Will return an array the size of col with 0 or 1 where a  
     disk can be dropped  
@@ -57,8 +57,11 @@ def RESULT(s, p, a, verbose=False):
     """ 
 
     #board = s.copy()  
-    board = copy.deepcopy(s)  
-    #make sure there is at least one spot left in column to drop a disk, 
+    board = copy.deepcopy(s)
+    if not 0 <= a < board.shape[1]:
+        raise Exception(f"Illegal action {a} by player {p}: column out of range")
+
+    #make sure there is at least one spot left in column to drop a disk,
     # by looking at the "top" row for an empty spot in that column  
     if board[0][a] != EMPTY: 
         if verbose: print("exception happened board=") 

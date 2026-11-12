@@ -1,8 +1,8 @@
-PREFIX = "c2/connector-state/board"
+PREFIX = "c2/connector-model/board"
 
 REQUEST_STATE = "request_state"
 REQUEST_ACTIONS = "request_actions"
-REQUEST_RESULTS = "request_results"
+REQUEST_RESULT = "request_result"
 REQUEST_RESET_STATE = "request_reset_state"
 
 NOTIFY_STATE = "notify_state"
@@ -18,7 +18,7 @@ DOMAIN = {
         "requests": [
             REQUEST_STATE,
             REQUEST_ACTIONS,
-            REQUEST_RESULTS,
+            REQUEST_RESULT,
             REQUEST_RESET_STATE,
         ],
         "notifications": [

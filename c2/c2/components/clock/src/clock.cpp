@@ -5,7 +5,7 @@
 
 #include <boost/system/error_code.hpp>
 
-const std::string PREFIX = "c2/connector-state/clock";
+const std::string PREFIX = "c2/connector-model/clock";
 
 Clock::Clock(const ClockConfig& config,
              boost::asio::io_context& ioc,
@@ -38,5 +38,6 @@ void Clock::schedule_next_tick() {
 
 void Clock::notify_next_tick() {
     ++_tick;
-    _publish(PREFIX + "/next_tick", std::to_string(_tick));
+    _publish(PREFIX + "/bottom_domain/notifications/notify_next_tick",
+             std::to_string(_tick));
 }

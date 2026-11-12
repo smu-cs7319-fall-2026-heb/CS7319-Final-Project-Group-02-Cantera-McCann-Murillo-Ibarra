@@ -33,7 +33,7 @@ class Component:
         self._requests = bottom_domain["requests"]
         self._notifications = bottom_domain["notifications"]
 
-        # bottom domain request handler 
+        # bottom domain request handlers
         self._handlers = {
             self._requests[REQUEST_STATUS]: self._on_request_status,
             self._requests[REQUEST_UPDATE_STATUS]: self._on_request_update_status,

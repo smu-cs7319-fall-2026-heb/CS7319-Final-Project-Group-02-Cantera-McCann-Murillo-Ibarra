@@ -6,29 +6,33 @@ import paho.mqtt.client as mqtt
 
 
 class TestStatus(unittest.TestCase):
-    # class level variables 
-    _PREFIX = "c2/connector-state/status/bottom_domain"
+    # class level variables
     _host = "localhost"
     _port = 1883
     _connection_timeout = 5
     _connected_event = None
     _client = None
 
-    # instance level variables 
+    # instance level variables
+    _PREFIX = "c2/connector-model/status/bottom_domain"
+    _RED = 1
+    _YELLOW = -1
     _received_timeout = 2
     _subscribed_timeout = 5
     _subscribed = None
     _received = None
     _response = None
     _initial_status = {
+        "is_game_running": False,
+        "outcome": None,
         "current_player": None,
         "players": {
             "player_1": {
-                "color": 1,
+                "color": _RED,
                 "wins": 0,
             },
             "player_2": {
-                "color": -1,
+                "color": _YELLOW,
                 "wins": 0,
             },
         },
@@ -129,7 +133,7 @@ class TestStatus(unittest.TestCase):
         self.assertTrue(self._subscribed.wait(self._subscribed_timeout), "Subscription timed out")
 
         changes = {
-            "current_player": 1,
+            "current_player": self._RED,
             "players": {"player_1": {"wins": 1}},
         }
         self._client.publish(
@@ -139,7 +143,7 @@ class TestStatus(unittest.TestCase):
 
         self.assertTrue(self._received.wait(self._received_timeout), "Response timed out")
         expected_status = deepcopy(self._initial_status)
-        expected_status["current_player"] = 1
+        expected_status["current_player"] = self._RED
         expected_status["players"]["player_1"]["wins"] = 1
         self.assertEqual(self._response, expected_status)
 

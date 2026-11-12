@@ -6,13 +6,14 @@ from domain import (
     Domain,
     REQUEST_STATE,
     REQUEST_ACTIONS,
-    REQUEST_RESULTS,
+    REQUEST_RESULT,
     REQUEST_RESET_STATE,
     NOTIFY_STATE,
     NOTIFY_AVAILABLE_ACTIONS,
     NOTIFY_STATE_CHANGE,
 )
 from event_client import EventClient
+
 
 # just defines the handler functions requests/notifications in/out 
 # of this component 
@@ -38,7 +39,7 @@ class Component:
         self._handlers = {
             self._requests[REQUEST_STATE]: self._on_request_state,
             self._requests[REQUEST_ACTIONS]: self._on_request_actions,
-            self._requests[REQUEST_RESULTS]: self._on_request_results,
+            self._requests[REQUEST_RESULT]: self._on_request_result,
             self._requests[REQUEST_RESET_STATE]: self._on_request_reset_state,
         }
 
@@ -66,7 +67,7 @@ class Component:
     def _on_request_actions(self, client, userdata, message):
         self._notify_available_actions()
 
-    def _on_request_results(self, client, userdata, message):
+    def _on_request_result(self, client, userdata, message):
         try:
             payload = json.loads(message.payload)
             state = self._board.result(payload["p"], payload["a"])
@@ -95,9 +96,6 @@ class Component:
 
     def _publish_notification(self, notification, value):
         topic_name = self._notifications[notification]
-        if notification == NOTIFY_STATE:
-            rows = [json.dumps(row) for row in value.tolist()]
-            payload = "[\n" + ",\n".join(rows) + "\n]"
-        else:
-            payload = json.dumps(value.tolist())
+        payload = json.dumps(value.tolist())
         return self._publish(topic_name, payload)
+

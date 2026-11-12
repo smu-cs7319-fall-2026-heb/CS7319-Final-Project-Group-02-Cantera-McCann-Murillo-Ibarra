@@ -1,31 +1,72 @@
 services:
-  connector-state:
+  connector-model:
     image: eclipse-mosquitto:2
     command: mosquitto -c /mosquitto-no-auth.conf
     ports:
       - "1883:1883"
 
+  connector-controller:
+    image: eclipse-mosquitto:2
+    command: mosquitto -c /mosquitto/config/mosquitto.conf
+    volumes:
+      - ./c2/connectors/controller/mosquitto-no-auth.conf:/mosquitto/config/mosquitto.conf:ro
+    ports:
+      - "1884:1883"
+    depends_on:
+      - connector-model
+
   # listen to all mosquitto brokers 
   # see the logs from docker host machine with:  docker compose -f compose.yaml logs -f subscribe_all 
   subscribe_all:
-    image: eclipse-mosquitto:2
+    build: ./c2/tools/subscribe_all
     command:
       - /bin/sh
       - -c
       - |
-        mosquitto_sub -h connector-state -p 1883 -t '#' -v &
-        # mosquitto_sub -h connector-other -p 1883 -t '#' -v &
+        # this broker has no bridge set up so a '#' topic is fine to listen/subscribe to all the things 
+        mosquitto_sub --host connector-model --port 1883 --topic '#' -F '%j' | jq --unbuffered --raw-output --from-file /pretty.jq &
+        # topic is specific to c2/connector-controller because the bridge in the connector-controller broker conf file copies connector-model messages onto this broker too
+        mosquitto_sub --host connector-controller --port 1883 --topic 'c2/connector-controller/#' -F '%j' | jq --unbuffered --raw-output --from-file /pretty.jq &
         wait -n
     depends_on:
-      - connector-state
-      # - connector-other 
+      - connector-model
+      - connector-controller
     restart: on-failure
 
   clock:
     build: ./c2/components/clock
+    depends_on:
+      - connector-model
+      - connector-controller
 
   board:
     build: ./c2/components/board
+    depends_on:
+      - connector-model
+      - connector-controller
 
   status:
     build: ./c2/components/status
+    depends_on:
+      - connector-model
+      - connector-controller
+
+  board_logic:
+    build: ./c2/components/board_logic
+    depends_on:
+      - connector-model
+      - connector-controller
+
+  turn_logic:
+    build: ./c2/components/turn_logic
+    depends_on:
+      - connector-model
+      - connector-controller
+
+  status_logic:
+    build: ./c2/components/status_logic
+    environment:
+      TURN_SECONDS: ${TURN_SECONDS:-30}
+    depends_on:
+      - connector-model
+      - connector-controller

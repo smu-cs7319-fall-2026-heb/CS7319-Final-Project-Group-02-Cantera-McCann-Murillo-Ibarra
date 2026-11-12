@@ -6,15 +6,17 @@ import paho.mqtt.client as mqtt
 
 
 class TestBoard(unittest.TestCase):
-    # class level variables 
-    _PREFIX = "c2/connector-state/board/bottom_domain"
+    # class level variables
     _host = "localhost"
     _port = 1883
     _connection_timeout = 5
     _connected_event = None
     _client = None
 
-    # instance level variables 
+    # instance level variables
+    _PREFIX = "c2/connector-model/board/bottom_domain"
+    _RED = 1
+    _YELLOW = -1
     _received_timeout = 2
     _subscribed_timeout = 5
     _subscribed = None
@@ -119,20 +121,20 @@ class TestBoard(unittest.TestCase):
         self.assertTrue(self._received.wait(self._received_timeout), "Response timed out")
         self.assertEqual(self._response, list(range(7)))
 
-    def test_request_results(self):
+    def test_request_result(self):
         self._client.subscribe(
             f"{self._PREFIX}/notifications/notify_state_change"
         )
         self.assertTrue(self._subscribed.wait(self._subscribed_timeout), "Subscription timed out")
 
         self._client.publish(
-            f"{self._PREFIX}/requests/request_results",
-            json.dumps({"p": 1, "a": 0}),
+            f"{self._PREFIX}/requests/request_result",
+            json.dumps({"p": self._RED, "a": 0}),
         )
 
         self.assertTrue(self._received.wait(self._received_timeout), "Response timed out")
         expected_state = deepcopy(self._initial_state)
-        expected_state[5][0] = 1
+        expected_state[5][0] = self._RED
         self.assertEqual(self._response, expected_state)
 
     def test_request_reset_state(self):
@@ -142,11 +144,11 @@ class TestBoard(unittest.TestCase):
         self.assertTrue(self._subscribed.wait(self._subscribed_timeout), "Subscription timed out")
 
         self._client.publish(
-            f"{self._PREFIX}/requests/request_results",
-            json.dumps({"p": 1, "a": 0}),
+            f"{self._PREFIX}/requests/request_result",
+            json.dumps({"p": self._RED, "a": 0}),
         )
         self.assertTrue(self._received.wait(self._received_timeout), "Response timed out")
-        self.assertEqual(self._response[5][0], 1)
+        self.assertEqual(self._response[5][0], self._RED)
         self._received.clear()
         self._response = None
 
