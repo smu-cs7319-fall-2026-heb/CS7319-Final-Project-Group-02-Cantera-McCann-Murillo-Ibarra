@@ -32,16 +32,33 @@ body {
 .slot {
   aspect-ratio: 1;
   border-radius: 50%;
-  cursor: pointer;
   transition: background-color 0.15s;
-}
-
-.board--disabled .slot {
-  cursor: default;
 }
 
 .slot--hover {
   background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ----- Player input (sits on top of the board) ----- */
+.board-window {
+  position: relative;
+}
+
+.player-input {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  padding: 10px;
+}
+
+.player-column {
+  cursor: pointer;
+}
+
+.player-input--disabled .player-column {
+  cursor: default;
 }
 
 /* ----- Cells ----- */

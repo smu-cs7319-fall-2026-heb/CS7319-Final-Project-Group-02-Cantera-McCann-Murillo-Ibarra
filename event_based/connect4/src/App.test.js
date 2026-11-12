@@ -1,53 +1,97 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import App from './App';
-import {
-  createBoard,
-  getDropRow,
-  placePiece,
-  findWinningLine,
-  isBoardFull,
-} from './utils/gameLogic';
+import { bus } from './bus';
+import { emptyBoard } from './constants';
 
-test('renders the game with Red to move first', () => {
+// Swap the socket for an in-memory router (see src/__mocks__/bus.js).
+// The browser components should only publish and draw what they receive.
+jest.mock('./bus');
+
+const deliver = (event, payload) => act(() => bus.deliver(event, payload));
+const published = (event) => bus.published.filter((e) => e.event === event);
+const heading = () => screen.getByRole('heading', { level: 3 });
+
+const report = (overrides) => ({
+  currentPlayer: 'red',
+  winner: null,
+  isDraw: false,
+  notice: '',
+  scores: { red: 0, yellow: 0, draws: 0 },
+  ...overrides,
+});
+
+beforeEach(() => bus.reset());
+
+test('opening the window asks the logic components for their current state', () => {
   render(<App />);
+  expect(published('window:opened')).toHaveLength(1);
   expect(screen.getByText(/connect four/i)).toBeInTheDocument();
-  expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent("Red's turn");
+  expect(heading()).toHaveTextContent("Red's turn");
 });
 
-test('clicking a column drops a piece and switches turns', () => {
+test('clicking a column only publishes the click; the board waits for Board Logic', () => {
   render(<App />);
-  fireEvent.click(screen.getAllByLabelText('Drop in column 1')[0]);
+  fireEvent.click(screen.getByLabelText('Drop in column 1'));
+
+  expect(published('player:column-clicked')).toEqual([
+    { event: 'player:column-clicked', payload: { col: 0 } },
+  ]);
+  expect(screen.queryAllByLabelText('red piece')).toHaveLength(0);
+
+  const board = emptyBoard();
+  board[5][0] = 'red';
+  deliver('board:updated', { board, winningCells: [] });
+  deliver('status:report', report({ currentPlayer: 'yellow' }));
+
   expect(screen.getAllByLabelText('red piece')).toHaveLength(1);
-  expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent("Yellow's turn");
+  expect(heading()).toHaveTextContent("Yellow's turn");
 });
 
-test('pieces drop to the lowest empty row', () => {
-  let board = createBoard();
-  expect(getDropRow(board, 3)).toBe(5);
-  board = placePiece(board, 5, 3, 'red');
-  expect(getDropRow(board, 3)).toBe(4);
+test('StatusArtist draws the winner, notice and scores it is sent', () => {
+  render(<App />);
+  deliver('status:report', report({ winner: 'yellow', scores: { red: 2, yellow: 3, draws: 1 } }));
+  expect(heading()).toHaveTextContent('Yellow wins!');
+  expect(screen.getByText('Yellow: 3')).toBeInTheDocument();
+  expect(screen.getByText('Draws: 1')).toBeInTheDocument();
+
+  deliver('status:report', report({ notice: 'That column is full, pick another one.' }));
+  expect(screen.getByText('That column is full, pick another one.')).toBeInTheDocument();
 });
 
-test('detects horizontal, vertical and diagonal wins', () => {
-  let board = createBoard();
-  [0, 1, 2, 3].forEach((c) => (board = placePiece(board, 5, c, 'red')));
-  expect(findWinningLine(board, 5, 3)).toHaveLength(4);
+test('window controls publish requests and follow the game phase', () => {
+  render(<App />);
+  fireEvent.click(screen.getByText('Pause'));
+  expect(published('window:pause')).toHaveLength(1);
 
-  board = createBoard();
-  [5, 4, 3, 2].forEach((r) => (board = placePiece(board, r, 0, 'yellow')));
-  expect(findWinningLine(board, 2, 0)).toHaveLength(4);
+  deliver('game:phase', { phase: 'paused' });
+  fireEvent.click(screen.getByText('Resume'));
+  expect(published('window:resume')).toHaveLength(1);
 
-  board = createBoard();
-  [[5, 0], [4, 1], [3, 2], [2, 3]].forEach(([r, c]) => (board = placePiece(board, r, c, 'red')));
-  expect(findWinningLine(board, 3, 2)).toHaveLength(4);
+  fireEvent.click(screen.getByText('30s'));
+  expect(published('window:duration-changed')[0].payload).toEqual({ seconds: 30 });
 
-  board = createBoard();
-  [0, 1, 2].forEach((c) => (board = placePiece(board, 5, c, 'red')));
-  expect(findWinningLine(board, 5, 2)).toBeNull();
+  fireEvent.click(screen.getByText('New Game'));
+  fireEvent.click(screen.getByText('Reset Scores'));
+  expect(published('window:new-game')).toHaveLength(1);
+  expect(published('window:reset-scores')).toHaveLength(1);
 });
 
-test('detects a full board', () => {
-  const full = createBoard().map((row) => row.map(() => 'red'));
-  expect(isBoardFull(full)).toBe(true);
-  expect(isBoardFull(createBoard())).toBe(false);
+test('the clock shows published ticks and hides when the game is over', () => {
+  render(<App />);
+  deliver('clock:tick', { timeLeft: 7, duration: 20, running: false });
+  expect(screen.getByText('7s (paused)')).toBeInTheDocument();
+
+  deliver('game:phase', { phase: 'over' });
+  expect(screen.queryByText('Turn timer')).not.toBeInTheDocument();
+});
+
+test('hovering shows a preview piece in the lowest empty row', () => {
+  const { container } = render(<App />);
+  fireEvent.mouseEnter(screen.getByLabelText('Drop in column 4'));
+  expect(published('player:column-hovered')[0].payload).toEqual({ col: 3 });
+
+  deliver('player:column-hovered', { col: 3 });
+  // The preview is purely visual, so check for its CSS class.
+  // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+  expect(container.querySelectorAll('.cell--preview-red')).toHaveLength(1);
 });

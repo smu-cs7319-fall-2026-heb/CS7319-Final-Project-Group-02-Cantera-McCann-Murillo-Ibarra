@@ -1,10 +1,10 @@
 export const ROWS = 6;
 export const COLS = 7;
 
-export const PLAYERS = {
-  red: { name: 'Red', color: 'danger' },
-  yellow: { name: 'Yellow', color: 'warning' },
-};
+// Pure Connect 4 rules. Board Logic, TurnLogic and Status Logic use these
+// helpers; none of them talks to the bus directly.
+
+export const PLAYER_NAMES = { red: 'Red', yellow: 'Yellow' };
 
 const DIRECTIONS = [
   [0, 1], // horizontal
