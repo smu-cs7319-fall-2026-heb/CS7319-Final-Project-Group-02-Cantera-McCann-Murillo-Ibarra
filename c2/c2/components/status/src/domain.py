@@ -1,4 +1,4 @@
-PREFIX = "c2/connector-state/status"
+PREFIX = "c2/connector-model/status"
 
 REQUEST_STATUS = "request_status"
 REQUEST_UPDATE_STATUS = "request_update_status"

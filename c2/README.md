@@ -11,6 +11,11 @@
     docker compose -f c2/compose.yaml up --build
 ```
 
+Note: use `--attach subscribe_all` to listen to connector messages only, and mute all other compose container output:
+```sh
+    docker compose -f c2/compose.yaml up --build --attach subscribe_all
+```
+
 Note: no GUI available yet  
 
 ## how to stop containers   
@@ -28,9 +33,9 @@ docker compose -f c2/compose.yaml down
 5. then pick final_project/c2 (bc it has the .devcontainer/ directory)
 6. wait for vs code to build and open the devcontainer 
 
-### listen to all messages on the connector-state connector (mqtt broker)  
+### listen to all messages on the connector-model connector (mqtt broker)  
 ```sh
-mosquitto_sub --host connector-state --topic '#' --verbose
+mosquitto_sub --host connector-model --topic '#' --verbose
 ```
 
 ### Compile clock component
@@ -56,6 +61,23 @@ docker compose -f c2/compose.yaml up
 python -m pytest c2/test -v   
 ```
 
+Note: to shorten test runs add `TURN_SECONDS=5`
+```sh
+TURN_SECONDS=5 docker compose -f c2/compose.yaml up
+TURN_SECONDS=5 python -m pytest c2/test -v
+```
+
+# Changes
+- removed the top domain connection from TurnLogic after implementing it  
+    because it's purpose is small and makes no requests or listens to any 
+    notifications to/from clock, status or board.   
+- renamed connector-state to connector-presenter to connector-controller. 
+    The first name was because of the way the book talked about those top layers 
+    in the c2 example, then the change to connector-presenter was becaus of preference 
+    in MVP (Model View Presenter) over MPC (Model View Controller) but finally 
+    the rename to conector-controller bc of the realization that since the GUI 
+    can send requests up to the top State components it is actually MVC since
+    the View can access the Model.   
 
 ## TODO
 - [ ] Add integration testing.  

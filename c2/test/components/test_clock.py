@@ -2,7 +2,7 @@ import json
 import pytest
 import paho.mqtt.client as mqtt
 
-TOPIC = "c2/connector-state/clock/next_tick"
+TOPIC = "c2/connector-model/clock/bottom_domain/notifications/notify_next_tick"
 
 
 def on_message(client, userdata, msg):
