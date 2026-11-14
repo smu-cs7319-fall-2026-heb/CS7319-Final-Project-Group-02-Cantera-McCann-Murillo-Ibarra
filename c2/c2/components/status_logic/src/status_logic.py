@@ -68,6 +68,7 @@ class StatusLogic:
             "turn_seconds_remaining",
             "game_seconds_elapsed",
             "games_played",
+            "draws",
         ):
             if name not in status:
                 raise ValueError(f"Status is missing field: {name}")
@@ -117,6 +118,7 @@ class StatusLogic:
     def _game_start_requested(self):
         self._status["outcome"] = None
         self._status["current_player"] = None
+        self._status["turn_seconds"] = self._turn_seconds
         self._status["turn_seconds_remaining"] = None
         self._status["game_seconds_elapsed"] = 0
         self._state = GAME_START_REQUESTED
@@ -136,6 +138,7 @@ class StatusLogic:
 
     def _game_stop_requested(self, outcome):
         self._status["outcome"] = outcome
+        self._status["turn_seconds"] = 0
         self._status["turn_seconds_remaining"] = None
         self._status["is_game_running"] = False
         self._status["games_played"] += 1
@@ -144,6 +147,9 @@ class StatusLogic:
 
         if winner is not None:
             self._status["players"][winner]["wins"] += 1
+
+        if outcome == DRAW:
+            self._status["draws"] += 1
 
         self._state = GAME_STOP_REQUESTED
         self._is_status_changed = True

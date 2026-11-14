@@ -18,6 +18,14 @@ Note: use `--attach subscribe_all` to listen to connector messages only, and mut
 
 Note: no GUI available yet  
 
+## auto play
+run:
+```sh
+GAMES=20 docker compose -f c2/compose.yaml run --rm --build auto_play
+```
+
+Note: `auto_play` resets Status when it starts, so wins and games played start again from 0.
+
 ## how to stop containers   
 ```sh
 docker compose -f c2/compose.yaml down  
@@ -87,3 +95,4 @@ TURN_SECONDS=5 python -m pytest c2/test -v
 - [ ] Figure out how to collect empirical data... 
 - [ ] Set up each broker in Docker Compose using the config files in `c2/connectors/`.
 - [ ] Use a shared domain file for components. See [board_domain_example.yaml] in `c2/context/`.
+- [ ] Figure out a way that a double click within a second on the gui does not send two moves for the same player.

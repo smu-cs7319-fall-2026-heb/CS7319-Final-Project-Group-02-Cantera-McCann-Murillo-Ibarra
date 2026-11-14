@@ -20,9 +20,11 @@ def INITIAL_STATUS():
                 "wins": 0,
             },
         },
+        "turn_seconds": 0,
         "turn_seconds_remaining": None,
         "game_seconds_elapsed": 0,
         "games_played": 0,
+        "draws": 0,
     }
 
 

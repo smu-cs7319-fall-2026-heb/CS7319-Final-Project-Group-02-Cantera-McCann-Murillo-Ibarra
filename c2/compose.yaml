@@ -15,6 +15,31 @@ services:
     depends_on:
       - connector-model
 
+  connector-view:
+    image: eclipse-mosquitto:2
+    command: mosquitto -c /mosquitto/config/mosquitto.conf
+    volumes:
+      - ./c2/connectors/view/mosquitto-no-auth.conf:/mosquitto/config/mosquitto.conf:ro
+    ports:
+      - "1885:1883"
+    depends_on:
+      - connector-model
+
+  connector-artist:
+    image: eclipse-mosquitto:2
+    command: mosquitto -c /mosquitto-no-auth.conf
+    ports:
+      - "1886:1883"
+
+  connector-layout:
+    image: eclipse-mosquitto:2
+    command: mosquitto -c /mosquitto/config/mosquitto.conf
+    volumes:
+      - ./c2/connectors/layout/mosquitto-no-auth.conf:/mosquitto/config/mosquitto.conf:ro
+    ports:
+      - "1887:1883"
+      - "9001:9001"
+
   # listen to all mosquitto brokers 
   # see the logs from docker host machine with:  docker compose -f compose.yaml logs -f subscribe_all 
   subscribe_all:
@@ -27,10 +52,15 @@ services:
         mosquitto_sub --host connector-model --port 1883 --topic '#' -F '%j' | jq --unbuffered --raw-output --from-file /pretty.jq &
         # topic is specific to c2/connector-controller because the bridge in the connector-controller broker conf file copies connector-model messages onto this broker too
         mosquitto_sub --host connector-controller --port 1883 --topic 'c2/connector-controller/#' -F '%j' | jq --unbuffered --raw-output --from-file /pretty.jq &
+        # these two brokers have no bridge set up either, so a '#' topic is fine for both
+        mosquitto_sub --host connector-artist --port 1883 --topic '#' -F '%j' | jq --unbuffered --raw-output --from-file /pretty.jq &
+        mosquitto_sub --host connector-layout --port 1883 --topic '#' -F '%j' | jq --unbuffered --raw-output --from-file /pretty.jq &
         wait -n
     depends_on:
       - connector-model
       - connector-controller
+      - connector-artist
+      - connector-layout
     restart: on-failure
 
   clock:
@@ -70,3 +100,45 @@ services:
     depends_on:
       - connector-model
       - connector-controller
+
+  status_artist:
+    build: ./c2/components/status_artist
+    depends_on:
+      - connector-view
+      - connector-artist
+
+  board_artist:
+    build: ./c2/components/board_artist
+    depends_on:
+      - connector-view
+      - connector-artist
+
+  layout_manager:
+    build: ./c2/components/layout_manager
+    depends_on:
+      - connector-artist
+      - connector-layout
+
+  graphics_binding:
+    build: ./c2/components/graphics_binding
+    volumes:
+      - ./c2/components/graphics_binding/app:/app/app
+    ports:
+      - "3030:3000"
+    depends_on:
+      - connector-layout
+
+  auto_play:
+    build: ./c2/components/auto_play
+    profiles:
+      - auto_play
+    environment:
+      GAMES: ${GAMES:-10}
+    depends_on:
+      - connector-view
+      - clock
+      - board
+      - status
+      - board_logic
+      - turn_logic
+      - status_logic
