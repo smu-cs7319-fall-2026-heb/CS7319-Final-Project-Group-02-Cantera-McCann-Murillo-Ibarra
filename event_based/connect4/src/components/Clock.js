@@ -1,10 +1,7 @@
 import { MDBProgress, MDBProgressBar } from 'mdb-react-ui-kit';
 import { useBusEvent } from '../useBusEvent';
 
-// ---- Clock (display) ----
-// Shows the countdown that the Clock logic (src/logic/clock.js) publishes.
-//
-// Listens: clock:tick
+
 export default function Clock() {
   const { timeLeft, duration, running } = useBusEvent('clock:tick', {
     timeLeft: 20,
