@@ -9,18 +9,22 @@ import { useBusEvent } from '../useBusEvent';
 
 const DURATIONS = [10, 20, 30];
 
-// ---- WindowingManager ----
-// Lays out the window and owns the window-level controls (new game, pause,
-// scores, turn length). It announces itself on open so every logic
-// component sends its current state.
-//
-// Listens: game:phase, clock:configured, metrics:updated
-// Publishes: window:opened, window:new-game, window:pause, window:resume,
-//            window:reset-scores, window:duration-changed
+const EMPTY_STAT = { count: 0, last: null, median: null, p95: null };
+const INITIAL_METRICS = {
+  gamesPlayed: 0,
+  moves: 0,
+  timeouts: 0,
+  summary: { placedMs: EMPTY_STAT, turnMs: EMPTY_STAT, winMs: EMPTY_STAT, messages: EMPTY_STAT },
+};
+
+const ms = (value) => (value === null ? '-' : `${value.toFixed(1)} ms`);
+const num = (value) => (value === null ? '-' : value);
+
 export default function WindowingManager() {
   const { phase } = useBusEvent('game:phase', { phase: 'playing' });
   const { duration } = useBusEvent('clock:configured', { duration: 20 });
-  const metrics = useBusEvent('metrics:updated', { gamesPlayed: 0, moves: 0, timeouts: 0 });
+  const metrics = useBusEvent('metrics:updated', INITIAL_METRICS);
+  const { placedMs, turnMs, winMs, messages } = metrics.summary;
 
   useEffect(() => {
     bus.publish('window:opened');
@@ -69,10 +73,21 @@ export default function WindowingManager() {
           </MDBBtnGroup>
         </div>
 
-        <p className="small text-muted text-center mt-3 mb-0">
-          Games played: {metrics.gamesPlayed} · Moves: {metrics.moves} · Timeouts:{' '}
-          {metrics.timeouts}
-        </p>
+        <div className="small text-muted text-center mt-3">
+          <div>
+            Games played: {metrics.gamesPlayed} | Moves: {metrics.moves} | Timeouts:{' '}
+            {metrics.timeouts}
+          </div>
+          <div>
+            Last move: placed {ms(placedMs.last)} | turn passed {ms(turnMs.last)} |{' '}
+            {num(messages.last)} messages
+          </div>
+          <div>
+            Median ({placedMs.count} moves): placed {ms(placedMs.median)} | turn passed{' '}
+            {ms(turnMs.median)} | win detected {ms(winMs.median)} | {num(messages.median)}{' '}
+            messages
+          </div>
+        </div>
       </MDBCardBody>
     </MDBCard>
   );

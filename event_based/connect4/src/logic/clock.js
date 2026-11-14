@@ -1,11 +1,5 @@
 export const ALLOWED_DURATIONS = [10, 20, 30];
 
-// ---- Clock ----
-// Counts down each turn and announces when time runs out. It restarts on
-// every turn change and stops while the game is paused or over.
-//
-// Listens: turn:changed, game:phase, window:duration-changed, window:opened
-// Publishes: clock:tick, clock:expired, clock:configured
 export function registerClock(bus, { duration: initialDuration = 20 } = {}) {
   let duration = initialDuration;
   let timeLeft = duration;
@@ -60,7 +54,6 @@ export function registerClock(bus, { duration: initialDuration = 20 } = {}) {
     if (phase !== 'over') restart();
   });
 
-  // The first window to open starts the very first turn's countdown.
   bus.subscribe('window:opened', () => {
     start();
     bus.publish('clock:configured', { duration });

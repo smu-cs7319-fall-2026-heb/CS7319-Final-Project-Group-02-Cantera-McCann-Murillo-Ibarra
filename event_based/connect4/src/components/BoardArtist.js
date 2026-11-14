@@ -2,11 +2,6 @@ import Cell from './Cell';
 import { emptyBoard } from '../constants';
 import { useBusEvent } from '../useBusEvent';
 
-// ---- BoardArtist ----
-// Draws the board exactly as Board Logic reports it, plus the hover preview.
-// It holds no game state of its own.
-//
-// Listens: board:updated, player:column-hovered, status:report, game:phase
 export default function BoardArtist() {
   const { board, winningCells } = useBusEvent('board:updated', {
     board: emptyBoard(),

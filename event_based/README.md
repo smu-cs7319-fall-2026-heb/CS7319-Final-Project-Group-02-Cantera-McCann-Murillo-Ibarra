@@ -47,6 +47,28 @@ The game opens at [http://localhost:3000](http://localhost:3000).
 
 Components in `src/logic/` have no UI. They are started once in `src/index.js`. Components in `src/components/` are what you see on screen.
 
+## Metrics
+
+The Metrics component (`connect4/src/logic/metrics.js`) measures every move, starting from the moment Player sends the click:
+
+| Metric | Measured from | To |
+| --- | --- | --- |
+| Piece placed | `player:column-clicked` | `board:updated` with the new piece |
+| Turn passed | `player:column-clicked` | `status:report` after `turn:changed` |
+| Win detected | `player:column-clicked` (winning move) | `board:win` |
+| Messages per move | every bus event caused by the move, counting the click | |
+
+`clock:tick`, `player:column-hovered` and `metrics:updated` are left out of the message count. The footer under the game shows the last move and the medians.
+
+To collect numbers for a report, start the server (step 1 above), then in a second terminal:
+
+```
+cd connect4
+npm run benchmark
+```
+
+This plays 15 scripted games (105 moves) after one warm-up game and prints the median and 95th percentile of each metric. For more games, use `GAMES=30 npm run benchmark` in Git Bash, or `$env:GAMES=30; npm run benchmark` in PowerShell.
+
 ## Tests
 
 ```

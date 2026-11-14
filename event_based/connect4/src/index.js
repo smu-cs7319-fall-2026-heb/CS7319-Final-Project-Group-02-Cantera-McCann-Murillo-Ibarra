@@ -6,8 +6,6 @@ import App from './App';
 import { bus } from './bus';
 import { startLogic } from './logic';
 
-// Start the non-visual components (Board Logic, TurnLogic, Status,
-// Status Logic, Clock, Metrics) once, before anything renders.
 startLogic(bus);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

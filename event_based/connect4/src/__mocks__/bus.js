@@ -1,8 +1,5 @@
-// In-memory stand-in for the server, used by tests via jest.mock('./bus').
-// Like the real server, every published event is sent straight back to the
-// subscribers. Tests read `bus.published` to see what was sent, and call
-// `bus.deliver(event, payload)` to inject an event themselves.
 let handlers = {};
+let allHandlers = new Set();
 
 export const bus = {
   published: [],
@@ -17,12 +14,21 @@ export const bus = {
     return () => handlers[event].delete(handler);
   },
 
+  subscribeAll(handler) {
+    allHandlers.add(handler);
+    return () => allHandlers.delete(handler);
+  },
+
+  close() {},
+
   deliver(event, payload) {
+    allHandlers.forEach((handler) => handler(event, payload));
     handlers[event]?.forEach((handler) => handler(payload));
   },
 
   reset() {
     handlers = {};
+    allHandlers = new Set();
     bus.published = [];
   },
 };

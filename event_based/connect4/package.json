@@ -17,6 +17,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "benchmark": "react-scripts test --watchAll=false --testMatch \"**/src/**/*.bench.js\"",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

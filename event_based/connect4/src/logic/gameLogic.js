@@ -1,16 +1,14 @@
 export const ROWS = 6;
 export const COLS = 7;
 
-// Pure Connect 4 rules. Board Logic, TurnLogic and Status Logic use these
-// helpers; none of them talks to the bus directly.
 
 export const PLAYER_NAMES = { red: 'Red', yellow: 'Yellow' };
 
 const DIRECTIONS = [
-  [0, 1], // horizontal
-  [1, 0], // vertical
-  [1, 1], // diagonal down-right
-  [1, -1], // diagonal down-left
+  [0, 1], 
+  [1, 0], 
+  [1, 1], 
+  [1, -1], 
 ];
 
 export const createBoard = () =>
@@ -18,7 +16,6 @@ export const createBoard = () =>
 
 export const nextPlayer = (player) => (player === 'red' ? 'yellow' : 'red');
 
-// Returns the lowest empty row in a column, or -1 if the column is full.
 export function getDropRow(board, col) {
   for (let row = ROWS - 1; row >= 0; row--) {
     if (!board[row][col]) return row;
@@ -26,15 +23,12 @@ export function getDropRow(board, col) {
   return -1;
 }
 
-// Returns a new board with the piece placed (does not mutate the original).
 export function placePiece(board, row, col, player) {
   return board.map((cells, r) =>
     r === row ? cells.map((cell, c) => (c === col ? player : cell)) : cells
   );
 }
 
-// Checks every line through the last move. Returns the winning cells as
-// [row, col] pairs, or null if the move did not win.
 export function findWinningLine(board, row, col) {
   const player = board[row][col];
   if (!player) return null;

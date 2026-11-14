@@ -2,12 +2,7 @@ import { COLS } from '../constants';
 import { bus } from '../bus';
 import { useBusEvent } from '../useBusEvent';
 
-// ---- Player ----
-// The player's input. An invisible row of columns laid over the board that
-// reports hovers and clicks. Whether a click becomes a move is up to TurnLogic.
-//
-// Listens: game:phase
-// Publishes: player:column-hovered, player:column-clicked
+
 export default function Player() {
   const { phase } = useBusEvent('game:phase', { phase: 'playing' });
   const disabled = phase !== 'playing';
@@ -24,7 +19,7 @@ export default function Player() {
           role="button"
           aria-label={`Drop in column ${col + 1}`}
           onMouseEnter={() => bus.publish('player:column-hovered', { col })}
-          onClick={() => bus.publish('player:column-clicked', { col })}
+          onClick={() => bus.publish('player:column-clicked', { col, clickedAt: performance.now() })}
         />
       ))}
     </div>

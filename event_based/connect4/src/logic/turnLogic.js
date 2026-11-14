@@ -1,13 +1,5 @@
 import { COLS, nextPlayer } from './gameLogic';
 
-// ---- TurnLogic ----
-// Knows whose turn it is. Turns a player's click into a move for Board Logic
-// (only while the game is being played) and passes the turn along after a
-// move or when the clock runs out.
-//
-// Listens: player:column-clicked, board:piece-dropped, clock:expired,
-//          game:phase, window:new-game
-// Publishes: turn:move, turn:changed
 export function registerTurnLogic(bus) {
   let currentPlayer = 'red';
   let phase = 'playing';
@@ -28,7 +20,6 @@ export function registerTurnLogic(bus) {
   });
 
   bus.subscribe('board:piece-dropped', ({ player, result }) => {
-    // A winning or drawing move ends the game, so the turn does not pass.
     if (result) return;
     changeTurn(nextPlayer(player), 'move');
   });

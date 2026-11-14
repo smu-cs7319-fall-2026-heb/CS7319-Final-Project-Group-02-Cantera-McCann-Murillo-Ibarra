@@ -6,13 +6,6 @@ import {
   isBoardFull,
 } from './gameLogic';
 
-// ---- Board Logic ----
-// Owns the grid. Places pieces when TurnLogic approves a move and reports
-// what happened: piece dropped, column full, win, or full board.
-//
-// Listens: turn:move, window:new-game, window:opened
-// Publishes: board:piece-dropped, board:column-full, board:win, board:full,
-//            board:reset, board:updated
 export function registerBoardLogic(bus) {
   let board = createBoard();
   let winningCells = [];

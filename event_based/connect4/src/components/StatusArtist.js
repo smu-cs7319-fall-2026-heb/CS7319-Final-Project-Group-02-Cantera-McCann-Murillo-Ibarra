@@ -10,11 +10,6 @@ const INITIAL_REPORT = {
   scores: { red: 0, yellow: 0, draws: 0 },
 };
 
-// ---- StatusArtist ----
-// Draws whatever Status Logic reports: whose turn it is, the result, any
-// notice, and the scoreboard.
-//
-// Listens: status:report
 export default function StatusArtist() {
   const { currentPlayer, winner, isDraw, notice, scores } = useBusEvent(
     'status:report',

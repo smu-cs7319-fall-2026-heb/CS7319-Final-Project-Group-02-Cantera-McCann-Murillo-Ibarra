@@ -2,13 +2,6 @@ import { PLAYER_NAMES } from './gameLogic';
 
 const emptyScores = () => ({ red: 0, yellow: 0, draws: 0 });
 
-// ---- Status Logic ----
-// Decides what the status area should say: whose turn it is, the result,
-// any notice, and the scoreboard. Publishes one report for StatusArtist to draw.
-//
-// Listens: turn:changed, board:column-full, board:win, board:full,
-//          window:new-game, window:reset-scores, window:opened
-// Publishes: status:report
 export function registerStatusLogic(bus) {
   const state = {
     currentPlayer: 'red',

@@ -1,5 +1,6 @@
 import { bus } from '../bus';
 import { startLogic } from '.';
+import { summarize } from './metrics';
 import {
   createBoard,
   getDropRow,
@@ -8,8 +9,6 @@ import {
   isBoardFull,
 } from './gameLogic';
 
-// The logic components run against the in-memory bus (src/__mocks__/bus.js),
-// which sends every event straight back like the real server does.
 jest.mock('../bus');
 
 let stopClock;
@@ -17,7 +16,9 @@ let stopClock;
 const publish = (event, payload = {}) => bus.publish(event, payload);
 const last = (name) => bus.published.filter((e) => e.event === name).at(-1)?.payload;
 const names = () => bus.published.map((e) => e.event);
-const click = (...cols) => cols.forEach((col) => publish('player:column-clicked', { col }));
+const click = (...cols) =>
+  cols.forEach((col) => publish('player:column-clicked', { col, clickedAt: performance.now() }));
+const settle = () => jest.advanceTimersByTime(250);
 const clearLog = () => (bus.published = []);
 
 beforeEach(() => {
@@ -87,15 +88,17 @@ describe('logic components talking over the bus', () => {
     expect(last('board:updated').board[5][0]).toBe('red');
     expect(last('turn:changed').player).toBe('yellow');
     expect(last('status:report').currentPlayer).toBe('yellow');
+    settle();
     expect(last('metrics:updated').moves).toBe(1);
   });
 
   test('four in a row wins, ends the game, and scores it', () => {
-    click(0, 1, 0, 1, 0, 1, 0); // red stacks column 1
+    click(0, 1, 0, 1, 0, 1, 0); 
     expect(last('board:win').player).toBe('red');
     expect(last('board:updated').winningCells).toHaveLength(4);
     expect(last('game:phase').phase).toBe('over');
     expect(last('status:report')).toMatchObject({ winner: 'red', scores: { red: 1 } });
+    settle();
     expect(last('metrics:updated').gamesPlayed).toBe(1);
 
     clearLog();
@@ -104,7 +107,7 @@ describe('logic components talking over the bus', () => {
   });
 
   test('a full column produces a notice and keeps the turn', () => {
-    click(0, 0, 0, 0, 0, 0); // fills column 1 without four in a row
+    click(0, 0, 0, 0, 0, 0);
     clearLog();
     click(0);
     expect(names()).toContain('board:column-full');
@@ -165,5 +168,42 @@ describe('logic components talking over the bus', () => {
     clearLog();
     click(-1, 7, 'x', 2.5);
     expect(names()).not.toContain('turn:move');
+  });
+});
+
+describe('Metrics', () => {
+  test('a normal move records placed and turn times and 6 messages', () => {
+    click(0);
+    settle();
+    const [sample] = last('metrics:updated').samples;
+    expect(sample.placedMs).toBeGreaterThanOrEqual(0);
+    expect(sample.turnMs).toBeGreaterThanOrEqual(0);
+    expect(sample.winMs).toBeNull();
+    expect(sample.messages).toBe(6);
+  });
+
+  test('a winning move records the win time and 7 messages', () => {
+    click(0, 1, 0, 1, 0, 1, 0);
+    settle();
+    const { samples, summary } = last('metrics:updated');
+    const winning = samples.at(-1);
+    expect(winning.winMs).toBeGreaterThanOrEqual(0);
+    expect(winning.turnMs).toBeNull();
+    expect(winning.messages).toBe(7);
+    expect(summary.placedMs.count).toBe(7);
+    expect(summary.winMs.count).toBe(1);
+  });
+
+  test('clicks that do not place a piece are not counted as moves', () => {
+    publish('window:pause');
+    click(0);
+    settle();
+    expect(last('metrics:updated').samples).toHaveLength(0);
+  });
+
+  test('summarize gives median and 95th percentile', () => {
+    const values = Array.from({ length: 100 }, (_, i) => i + 1);
+    expect(summarize(values)).toEqual({ count: 100, last: 100, median: 50, p95: 95 });
+    expect(summarize([])).toEqual({ count: 0, last: null, median: null, p95: null });
   });
 });

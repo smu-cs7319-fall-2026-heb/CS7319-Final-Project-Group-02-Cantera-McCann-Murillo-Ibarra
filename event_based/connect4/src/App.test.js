@@ -3,8 +3,6 @@ import App from './App';
 import { bus } from './bus';
 import { emptyBoard } from './constants';
 
-// Swap the socket for an in-memory router (see src/__mocks__/bus.js).
-// The browser components should only publish and draw what they receive.
 jest.mock('./bus');
 
 const deliver = (event, payload) => act(() => bus.deliver(event, payload));
@@ -34,7 +32,7 @@ test('clicking a column only publishes the click; the board waits for Board Logi
   fireEvent.click(screen.getByLabelText('Drop in column 1'));
 
   expect(published('player:column-clicked')).toEqual([
-    { event: 'player:column-clicked', payload: { col: 0 } },
+    { event: 'player:column-clicked', payload: { col: 0, clickedAt: expect.any(Number) } },
   ]);
   expect(screen.queryAllByLabelText('red piece')).toHaveLength(0);
 
@@ -91,7 +89,5 @@ test('hovering shows a preview piece in the lowest empty row', () => {
   expect(published('player:column-hovered')[0].payload).toEqual({ col: 3 });
 
   deliver('player:column-hovered', { col: 3 });
-  // The preview is purely visual, so check for its CSS class.
-  // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
   expect(container.querySelectorAll('.cell--preview-red')).toHaveLength(1);
 });

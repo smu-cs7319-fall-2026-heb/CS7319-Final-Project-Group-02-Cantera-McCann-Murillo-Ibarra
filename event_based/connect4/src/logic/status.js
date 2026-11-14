@@ -1,9 +1,3 @@
-// ---- Status ----
-// Tracks which phase the game is in: 'playing', 'paused' or 'over'.
-//
-// Listens: window:pause, window:resume, window:new-game, board:win,
-//          board:full, window:opened
-// Publishes: game:phase
 export function registerStatus(bus) {
   let phase = 'playing';
 
