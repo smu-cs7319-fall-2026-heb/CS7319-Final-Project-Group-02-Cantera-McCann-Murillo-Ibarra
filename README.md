@@ -88,7 +88,7 @@ TURN_SECONDS=5 python -m pytest c2/test -v
 
 
 
-# Connect 4 (Event Based)
+# Event Based
 
 The app has two parts: a bus server (`server/`) and the React client (`connect4/`). Run each one in its own terminal.
 
