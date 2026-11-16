@@ -15,8 +15,13 @@ LAYOUT = {
     "turn_timer_label": {"x": -0.57, "y": 0.58},
     "turn_timer": {"x": 0.57, "y": 0.58},
     "turn_timer_bar": {"x": 0.0, "y": 0.51, "width": 1.4, "height": 0.03},
-    "new_game": {"x": -0.25, "y": -0.82},
-    "reset_scores": {"x": 0.25, "y": -0.82},
+    "new_game": {"x": -0.79, "y": -0.82},
+    "pause_timer": {"x": -0.43, "y": -0.82},
+    "resume_timer": {"x": -0.43, "y": -0.82},
+    "reset_scores": {"x": -0.02, "y": -0.82},
+    "turn_timer_10": {"x": 0.37, "y": -0.82},
+    "turn_timer_20": {"x": 0.61, "y": -0.82},
+    "turn_timer_30": {"x": 0.85, "y": -0.82},
     "games_played": {"x": 0.0, "y": -0.91},
 }
 

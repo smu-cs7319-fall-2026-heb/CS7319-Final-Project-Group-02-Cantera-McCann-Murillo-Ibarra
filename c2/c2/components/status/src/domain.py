@@ -3,9 +3,11 @@ PREFIX = "c2/connector-model/status"
 REQUEST_STATUS = "request_status"
 REQUEST_UPDATE_STATUS = "request_update_status"
 REQUEST_RESET_STATUS = "request_reset_status"
+REQUEST_RESTART_TURN_TIMER = "request_restart_turn_timer"
 
 NOTIFY_STATUS = "notify_status"
 NOTIFY_STATUS_CHANGE = "notify_status_change"
+NOTIFY_TURN_TIMER_RESTART_REQUESTED = "notify_turn_timer_restart_requested"
 
 # keeping topics simple, so just passing entire status as notification 
 DOMAIN = {
@@ -18,10 +20,12 @@ DOMAIN = {
             REQUEST_STATUS,
             REQUEST_UPDATE_STATUS,
             REQUEST_RESET_STATUS,
+            REQUEST_RESTART_TURN_TIMER,
         ],
         "notifications": [
             NOTIFY_STATUS,
             NOTIFY_STATUS_CHANGE,
+            NOTIFY_TURN_TIMER_RESTART_REQUESTED,
         ],
     },
 }

@@ -15,6 +15,7 @@ REQUEST_STATUS = "request_status"
 REQUEST_UPDATE_STATUS = "request_update_status"
 NOTIFY_STATUS = "notify_status"
 NOTIFY_STATUS_CHANGE = "notify_status_change"
+NOTIFY_TURN_TIMER_RESTART_REQUESTED = "notify_turn_timer_restart_requested"
 
 # Board
 REQUEST_RESET_STATE = "request_reset_state"
@@ -54,6 +55,7 @@ DOMAIN = {
             "notifications": [
                 NOTIFY_STATUS,
                 NOTIFY_STATUS_CHANGE,
+                NOTIFY_TURN_TIMER_RESTART_REQUESTED,
             ],
         },
         BOARD: {

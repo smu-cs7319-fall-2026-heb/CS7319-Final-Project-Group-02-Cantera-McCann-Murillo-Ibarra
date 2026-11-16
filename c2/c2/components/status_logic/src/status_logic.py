@@ -1,4 +1,5 @@
 from copy import deepcopy
+from time import monotonic
 
 
 RED = 1
@@ -22,6 +23,7 @@ class StatusLogic:
         self._turn_seconds = turn_seconds
         # an internal representation of what Status component has
         self._status = None
+        self._turn_paused_at = None
         self._state = GAME_STOPPED
         self._is_status_changed = False
         self._is_reset_needed = False
@@ -46,11 +48,24 @@ class StatusLogic:
             return
 
         # not a transition, just counts one second of the running turn
-        self._status["game_seconds_elapsed"] += 1
-        self._status["turn_seconds_remaining"] -= 1
-        self._is_status_changed = True
+        now = monotonic()
+        turn_now = now if self._turn_paused_at is None else self._turn_paused_at
+        game_seconds_elapsed = int(now - self._game_started_at)
+        turn_seconds_remaining = max(
+            0,
+            self._turn_seconds - int(turn_now - self._turn_started_at),
+        )
 
-        if self._status["turn_seconds_remaining"] == 0:
+        self._is_status_changed = (
+            game_seconds_elapsed != self._status["game_seconds_elapsed"]
+            or turn_seconds_remaining != self._status["turn_seconds_remaining"]
+        )
+        self._status["game_seconds_elapsed"] = game_seconds_elapsed
+        self._status["turn_seconds_remaining"] = turn_seconds_remaining
+
+        if (self._status["turn_seconds_remaining"] == 0
+            and not self._status["is_turn_timer_paused"]
+        ):
             self._turn_requested()
 
     def set_status(self, status):
@@ -62,6 +77,7 @@ class StatusLogic:
         # the only fields needed from Status
         for name in (
             "is_game_running",
+            "is_turn_timer_paused",
             "outcome",
             "current_player",
             "players",
@@ -81,6 +97,20 @@ class StatusLogic:
         elif self._state == GAME_STOPPED:
             self._status = deepcopy(status)
             self._game_start_requested()
+        elif (status["is_turn_timer_paused"]
+            != self._status["is_turn_timer_paused"]
+        ):
+            paused = status["is_turn_timer_paused"]
+
+            if self._state == TURN_STARTED:
+                now = monotonic()
+                if paused:
+                    self._turn_paused_at = now
+                else:
+                    self._turn_started_at += now - self._turn_paused_at
+                    self._turn_paused_at = None
+
+            self._status["is_turn_timer_paused"] = paused
 
     def end_turn(self):
         self._clear_needs()
@@ -109,6 +139,17 @@ class StatusLogic:
         if self._state == GAME_START_REQUESTED:
             self._turn_requested()
 
+    def restart_turn_timer(self, seconds):
+        self._clear_needs()
+
+        if seconds not in (10, 20, 30):
+            raise ValueError("Turn duration must be 10, 20, or 30 seconds")
+
+        self._turn_seconds = seconds
+
+        if self._state == TURN_STARTED:
+            self._turn_started(self._status["current_player"])
+
     def _clear_needs(self):
         self._is_status_changed = False
         self._is_reset_needed = False
@@ -116,6 +157,9 @@ class StatusLogic:
 
     # a new game needs an empty board, and a cleared game status
     def _game_start_requested(self):
+        self._game_started_at = monotonic()
+        self._turn_paused_at = None
+        self._status["is_turn_timer_paused"] = False
         self._status["outcome"] = None
         self._status["current_player"] = None
         self._status["turn_seconds"] = self._turn_seconds
@@ -131,12 +175,19 @@ class StatusLogic:
         self._is_turn_needed = True
 
     def _turn_started(self, player):
+        self._turn_started_at = monotonic()
+        self._turn_paused_at = None
+        if self._status["is_turn_timer_paused"]:
+            self._turn_paused_at = self._turn_started_at
         self._status["current_player"] = player
+        self._status["turn_seconds"] = self._turn_seconds
         self._status["turn_seconds_remaining"] = self._turn_seconds
         self._state = TURN_STARTED
         self._is_status_changed = True
 
     def _game_stop_requested(self, outcome):
+        self._turn_paused_at = None
+        self._status["is_turn_timer_paused"] = False
         self._status["outcome"] = outcome
         self._status["turn_seconds"] = 0
         self._status["turn_seconds_remaining"] = None

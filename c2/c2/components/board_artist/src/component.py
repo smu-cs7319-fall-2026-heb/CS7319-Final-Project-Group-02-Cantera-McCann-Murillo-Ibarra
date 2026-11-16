@@ -173,7 +173,7 @@ class Component:
         try:
             click = json.loads(message.payload)
             with self._lock:
-                move = self._board_artist.get_move(click["name"])
+                move = self._board_artist.accept_move(click["name"])
         except (ValueError, TypeError, KeyError):
             logging.exception("Could not process click")
             return

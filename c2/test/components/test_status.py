@@ -24,6 +24,7 @@ class TestStatus(unittest.TestCase):
     _response = None
     _initial_status = {
         "is_game_running": False,
+        "is_turn_timer_paused": False,
         "outcome": None,
         "current_player": None,
         "players": {

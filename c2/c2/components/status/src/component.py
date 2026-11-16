@@ -7,8 +7,10 @@ from domain import (
     REQUEST_STATUS,
     REQUEST_UPDATE_STATUS,
     REQUEST_RESET_STATUS,
+    REQUEST_RESTART_TURN_TIMER,
     NOTIFY_STATUS,
     NOTIFY_STATUS_CHANGE,
+    NOTIFY_TURN_TIMER_RESTART_REQUESTED,
 )
 from event_client import EventClient
 
@@ -38,6 +40,7 @@ class Component:
             self._requests[REQUEST_STATUS]: self._on_request_status,
             self._requests[REQUEST_UPDATE_STATUS]: self._on_request_update_status,
             self._requests[REQUEST_RESET_STATUS]: self._on_request_reset_status,
+            self._requests[REQUEST_RESTART_TURN_TIMER]: self._on_request_restart_turn_timer,
         }
 
         for topic in self._handlers:
@@ -70,6 +73,17 @@ class Component:
     def _on_request_reset_status(self, client, userdata, message):
         status = self._status.reset_status()
         self._notify_status_change(status)
+
+    def _on_request_restart_turn_timer(self, client, userdata, message):
+        try:
+            seconds = json.loads(message.payload)
+        except (ValueError, TypeError):
+            logging.exception("Could not process turn timer request")
+            return
+
+        self._publish_notification(
+            NOTIFY_TURN_TIMER_RESTART_REQUESTED, seconds
+        )
 
     # just shows current status 
     def _notify_status(self):

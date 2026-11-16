@@ -2,13 +2,14 @@ import json
 import logging
 import threading
 
-from status_artist import StatusArtist, NEW_GAME, RESET_SCORES
+from status_artist import StatusArtist, NEW_GAME, RESET_SCORES, PAUSE_TIMER, RESUME_TIMER, TURN_TIMER_OPTIONS
 from domain import (
     Domain,
     STATUS,
     REQUEST_STATUS,
     REQUEST_UPDATE_STATUS,
     REQUEST_RESET_STATUS,
+    REQUEST_RESTART_TURN_TIMER,
     NOTIFY_STATUS,
     NOTIFY_STATUS_CHANGE,
     REQUEST_OBJECTS,
@@ -153,6 +154,16 @@ class Component:
             self._request_update_status({"is_game_running": True})
         elif name == RESET_SCORES:
             self._request_reset_status()
+        elif name == PAUSE_TIMER:
+            self._request_update_status({"is_turn_timer_paused": True})
+        elif name == RESUME_TIMER:
+            self._request_update_status({"is_turn_timer_paused": False})
+        elif name in TURN_TIMER_OPTIONS:
+            self._publish_request(
+                self._status_requests,
+                REQUEST_RESTART_TURN_TIMER,
+                TURN_TIMER_OPTIONS[name],
+            )
 
     def _notify_objects(self, objects):
         return self._publish_notification(NOTIFY_OBJECTS, objects)

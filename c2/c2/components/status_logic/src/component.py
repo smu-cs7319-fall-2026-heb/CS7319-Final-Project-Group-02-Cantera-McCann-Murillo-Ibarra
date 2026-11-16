@@ -14,6 +14,7 @@ from domain import (
     REQUEST_UPDATE_STATUS,
     NOTIFY_STATUS,
     NOTIFY_STATUS_CHANGE,
+    NOTIFY_TURN_TIMER_RESTART_REQUESTED,
     REQUEST_RESET_STATE,
     NOTIFY_RESULT_CHANGE,
     REQUEST_TURN,
@@ -56,6 +57,7 @@ class Component:
             self._clock_notifications[NOTIFY_NEXT_TICK]: self._on_notify_next_tick,
             self._status_notifications[NOTIFY_STATUS]: self._on_notify_status,
             self._status_notifications[NOTIFY_STATUS_CHANGE]: self._on_notify_status,
+            self._status_notifications[NOTIFY_TURN_TIMER_RESTART_REQUESTED]: self._on_notify_turn_timer_restart_requested,
             self._board_logic_notifications[NOTIFY_RESULT_CHANGE]: self._on_notify_result_change,
             self._turn_logic_notifications[NOTIFY_TURN]: self._on_notify_turn,
             self._turn_logic_notifications[NOTIFY_RESET_TURN]: self._on_notify_reset_turn,
@@ -85,6 +87,16 @@ class Component:
             self._status_logic.set_status(status)
         except (ValueError, TypeError):
             logging.exception("Could not process status")
+            return
+
+        self._publish_needed_requests()
+
+    def _on_notify_turn_timer_restart_requested(self, client, userdata, message):
+        try:
+            seconds = json.loads(message.payload)
+            self._status_logic.restart_turn_timer(seconds)
+        except (ValueError, TypeError):
+            logging.exception("Could not restart turn timer")
             return
 
         self._publish_needed_requests()
@@ -140,6 +152,11 @@ class Component:
         return self._publish_request(self._status_requests, REQUEST_STATUS)
 
     def _request_update_status(self, status):
+        if (status["is_game_running"]
+            and not self._status_logic.is_reset_needed()
+        ):
+            del status["is_turn_timer_paused"]
+
         return self._publish_request(
             self._status_requests, REQUEST_UPDATE_STATUS, status
         )

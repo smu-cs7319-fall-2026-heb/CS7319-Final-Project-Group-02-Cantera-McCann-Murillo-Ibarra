@@ -21,6 +21,7 @@ class BoardArtist:
         self._state = []
         self._current_player = None
         self._is_turn_running = False
+        self._move_pending = False
         self._hover_name = None
 
     def get_objects(self):
@@ -41,6 +42,11 @@ class BoardArtist:
         self._hover_name = name
 
     def set_status(self, status):
+        if (status["current_player"] != self._current_player
+            or status["turn_seconds_remaining"] is None
+        ):
+            self._move_pending = False
+
         self._current_player = status["current_player"]
         self._is_turn_running = status["turn_seconds_remaining"] is not None
 
@@ -51,6 +57,23 @@ class BoardArtist:
             return None
 
         return self._current_player, self._objects[name]["column"]
+
+    def accept_move(self, name):
+        if self._move_pending:
+            return None
+
+        move = self.get_move(name)
+
+        if move is None:
+            return None
+
+        player, column = move
+
+        if self._get_landing_row(column) is None:
+            return None
+
+        self._move_pending = True
+        return move
 
     def _get_landing_row(self, column):
         landing_row = None

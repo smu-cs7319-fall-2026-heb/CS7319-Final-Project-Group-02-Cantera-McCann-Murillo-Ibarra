@@ -65,6 +65,8 @@ services:
 
   clock:
     build: ./c2/components/clock
+    environment:
+      TICK_INTERVAL_MS: ${TICK_INTERVAL_MS:-1000}
     depends_on:
       - connector-model
       - connector-controller
@@ -115,6 +117,8 @@ services:
 
   layout_manager:
     build: ./c2/components/layout_manager
+    environment:
+      GAMES: ${GAMES:-15}
     depends_on:
       - connector-artist
       - connector-layout

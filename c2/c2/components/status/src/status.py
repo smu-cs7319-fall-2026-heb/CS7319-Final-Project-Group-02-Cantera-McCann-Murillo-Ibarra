@@ -8,6 +8,7 @@ YELLOW = -1
 def INITIAL_STATUS():
     return {
         "is_game_running": False,
+        "is_turn_timer_paused": False,
         "outcome": None,
         "current_player": None,
         "players": {

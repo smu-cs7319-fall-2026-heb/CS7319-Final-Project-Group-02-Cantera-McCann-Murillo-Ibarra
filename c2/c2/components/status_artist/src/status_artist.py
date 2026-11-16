@@ -9,6 +9,14 @@ DRAW = "draw"
 
 NEW_GAME = "new_game"
 RESET_SCORES = "reset_scores"
+PAUSE_TIMER = "pause_timer"
+RESUME_TIMER = "resume_timer"
+
+TURN_TIMER_OPTIONS = {
+    "turn_timer_10": 10,
+    "turn_timer_20": 20,
+    "turn_timer_30": 30,
+}
 
 
 # StatusArtist turns a status from the Status component into drawable objects.
@@ -93,10 +101,25 @@ class StatusArtist:
             objects["turn_timer_label"] = {"type": "text", "value": "Turn timer"}
             objects["turn_timer"] = {
                 "type": "text",
-                "value": f"{turn_seconds_remaining}s",
+                "value": f"{turn_seconds_remaining}s{' (paused)' if status['is_turn_timer_paused'] else ''}",
                 "color": color,
             }
             objects["turn_timer_bar"] = {"type": "bar", "value": fraction, "color": color}
+
+        if (status["is_game_running"]
+            and turn_seconds_remaining is not None
+        ):
+            if status["is_turn_timer_paused"]:
+                objects[RESUME_TIMER] = {"type": "button", "value": "Resume", "color": "blue"}
+            else:
+                objects[PAUSE_TIMER] = {"type": "button", "value": "Pause", "color": "blue"}
+
+            for name, seconds in TURN_TIMER_OPTIONS.items():
+                objects[name] = {
+                    "type": "button",
+                    "value": f"{seconds}s",
+                    "color": "blue" if seconds == turn_seconds else "gray",
+                }
 
         objects[NEW_GAME] = {"type": "button", "value": "New game", "color": "blue"}
         objects[RESET_SCORES] = {"type": "button", "value": "Reset scores", "color": "gray"}
