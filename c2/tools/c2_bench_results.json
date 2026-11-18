@@ -1,0 +1,22 @@
+{
+  "placed_ms": {
+    "count": 105,
+    "median": 47.91,
+    "p95": 51.29
+  },
+  "turn_ms": {
+    "count": 90,
+    "median": 743.2,
+    "p95": 787.97
+  },
+  "win_ms": {
+    "count": 15,
+    "median": 738.99,
+    "p95": 746.24
+  },
+  "messages": {
+    "count": 105,
+    "median": 18,
+    "p95": 18
+  }
+}
